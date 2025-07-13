@@ -1,144 +1,168 @@
-# Horse Racing Data Parser
+# Ravitietojen Jäsennin
 
-A Python script for parsing horse racing data from "käsiohjelma" PDF files downloaded from Veikkaus.fi and converting it to Excel format. The parser extracts horse information, race records, and run history from Finnish horse racing programs.
+Python-skripti ravitietojen jäsentämiseen "ohjelmatiedot" PDF-tiedostoista ja muuntamiseen Excel-muotoon. Jäsennin poimii hevostiedot, ennätykset ja juoksuhistorian suomalaisista raviohjelmista.
 
-## Features
+## Ominaisuudet
 
-- Extracts horse names, ages, and race records from PDF files
-- Parses both auto (a) and tasuri (t) record times
-- Extracts run history with dates and times
-- Handles date parsing with intelligent year detection
-- Outputs data to Excel format for easy analysis
-- Processes multiple horses and races from a single PDF
+- Poimii hevosten nimet, iät ja ennätykset PDF-tiedostoista
+- Jäsentää sekä auto- (a) että tasuri- (t) ennätysajat
+- Poimii täydellisen juoksuhistorian päivämäärineen ja aikoineen
+- Käsittelee päivämäärien jäsentämisen
+- Tulostaa tiedot Excel-muotoon
+- Käsittelee useita hevosia ja lähtöjä yhdestä PDF-tiedostosta
 
-## Requirements
+## Vaatimukset
 
-Install the required dependencies:
+Asenna tarvittavat riippuvuudet:
 
 ```bash
 pip install pandas PyPDF2 openpyxl
 ```
 
-## Usage
+## Käyttö
 
-### Basic Usage
+### Peruskäyttö
+main.py tiedoston funktiokutsuun syötetään parametriksi haluttu tiedosto (muista .pdf-pääte)
 
 ```python
 from horse_parser import parse_lahdot
 
-# Parse the PDF file
+# Jäsennä PDF-tiedosto
 hevosdata = parse_lahdot("ohjelmatiedot.R_13.07.2025.pdf")
 
-# Save to Excel
+# Tallenna Excel-tiedostoon
 hevosdata.to_excel("Hevosdata_Riihimaki.xlsx", index=False)
 ```
 
-### Command Line Usage
+### Komentorivi-käyttö
 
-Run the script directly:
+Suorita skripti suoraan:
 
 ```bash
 python horse_parser.py
 ```
 
-This will process the default file `ohjelmatiedot.R_13.07.2025.pdf` and create `Hevosdata_Riihimaki.xlsx`.
+Tämä käsittelee oletustiedoston `ohjelmatiedot.R_13.07.2025.pdf` ja luo tiedoston `Hevosdata_Riihimaki.xlsx`.
 
-## Input Format
+## Syöttötiedoston muoto
 
-The parser expects PDF files containing Finnish horse racing program data with the following structure:
+Jäsennin odottaa PDF-tiedostoja, jotka sisältävät suomalaisten raviohjelmien tietoja seuraavalla rakenteella:
 
-- Horse names and basic information
-- Race records marked with time patterns (e.g., "1,5" for 1.5 seconds)
-- Run history with dates in DD.MM format
-- Race titles and program information
+- Hevosten nimet ja perustiedot
+- Ennätykset merkittyinä aikamalleina (esim. "1,5" tarkoittaa 1,5 sekuntia)
+- Juoksuhistoria päivämäärineen PP.KK-muodossa
+- Lähtöjen otsikot ja ohjelman tiedot
 
-## Output Format
+## Tulosteen muoto
 
-The parser generates an Excel file with the following columns:
+Jäsennin tuottaa Excel-tiedoston seuraavilla sarakkeilla:
 
-| Column | Description |
-|--------|-------------|
-| **Lähtö** | Race/start information |
-| **Hevonen** | Horse name |
-| **Ikä** | Horse age |
-| **Ennätys (a)** | Auto record time |
-| **Ennätys (t)** | Tasuri record time |
-| **Ennätys pvm (a)** | Auto record date |
-| **Ennätys pvm (t)** | Tasuri record date |
-| **Juoksu pvm** | Run date |
-| **Juoksu aika** | Run time |
+| Sarake | Kuvaus |
+|--------|--------|
+| **Lähtö** | Lähtö-/kilpailutiedot |
+| **Hevonen** | Hevosen nimi |
+| **Ikä** | Hevosen ikä |
+| **Ennätys (a)** | Autolähdön ennätysaika |
+| **Ennätys (t)** | Tasurilähdön ennätysaika |
+| **Ennätys pvm (a)** | Autolähdön ennätyksen päivämäärä |
+| **Ennätys pvm (t)** | Tasurilähdön ennätyksen päivämäärä |
+| **Juoksu pvm** | Juoksun päivämäärä |
+| **Juoksu aika** | Juoksun aika |
 
-## Data Structure
+## Tietorakenne
 
-The output contains one row per horse run, with horse basic information duplicated for each run. If a horse has no recorded runs, one row with basic information is still included.
+Tuloste sisältää yhden rivin per hevosen juoksu, jossa hevosen perustiedot toistuvat jokaisella juoksurivillä. Jos hevosella ei ole merkittyjä juoksuja, yksi rivi perustietoineen sisällytetään silti.
 
-## Key Functions
+## Tärkeimmät funktiot
 
 ### `parse_lahdot(pdf_path)`
-Main parsing function that processes the entire PDF file.
+Pääjäsennysfunktio, joka käsittelee koko PDF-tiedoston.
 
-**Parameters:**
-- `pdf_path` (str): Path to the PDF file to parse
+**Parametrit:**
+- `pdf_path` (str): Jäsennettävän PDF-tiedoston polku
 
-**Returns:**
-- `pandas.DataFrame`: Parsed horse racing data
+**Palauttaa:**
+- `pandas.DataFrame`: Jäsennetyt ravitiedot
 
 ### `extract_all_runs(lines, start_idx, run_pattern)`
-Extracts all runs for a specific horse from the text lines.
+Poimii kaikki tietyn hevosen juoksut tekstriveistä.
 
 ### `parse_age(age_text)`
-Converts age text to numeric format.
+Muuntaa ikätekstin numeeriseen muotoon.
 
 ### `parse_date(date_str)`
-Parses DD.MM format dates with intelligent year detection.
+Jäsentää PP.KK-muotoiset päivämäärät älykkäällä vuoden tunnistuksella.
 
 ### `find_date_for_time(lines, start_idx, time_str, date_pattern, max_search=15)`
-Helper function to find the date associated with a specific time record.
+Apufunktio tietyn aikaennätyksen päivämäärän löytämiseksi.
 
-## Date Handling
+## Päivämäärien käsittely
 
-The parser uses intelligent date parsing:
-- Dates are expected in DD.MM format
-- If a parsed date would be in the future, the previous year is used
-- This handles year-end transitions correctly
+Jäsennin käyttää älykästä päivämäärien jäsentämistä:
+- Päivämäärät odotetaan PP.KK-muodossa
+- Jos jäsennetty päivämäärä olisi tulevaisuudessa, käytetään edellistä vuotta
+- Tämä käsittelee vuodenvaihteen siirtymät oikein
 
-## Error Handling
+## Virheenkäsittely
 
-The parser includes robust error handling for:
-- Missing or malformed data
-- Invalid date formats
-- PDF parsing errors
-- Missing horse information
+Jäsennin sisältää vankan virheenkäsittelyn:
+- Puuttuvat tai virheelliset tiedot
+- Virheelliset päivämäärämuodot
+- PDF-jäsennysvirheet
+- Puuttuvat hevostiedot
 
-## Customization
+## Mukauttaminen
 
-To modify the parser for different PDF formats:
+Jäsentimen mukauttaminen eri PDF-muodoille:
 
-1. **Regex Patterns**: Update the regex patterns in `parse_lahdot()` to match your PDF format
-2. **Column Names**: Modify the column names in the data dictionary
-3. **Search Parameters**: Adjust `max_search` parameters to control how far the parser looks for related data
+1. **Regex-mallit**: Päivitä regex-mallit `parse_lahdot()`-funktiossa vastaamaan PDF-muotoasi
+2. **Sarakkeiden nimet**: Muokkaa sarakkeiden nimiä tietosanakirjassa
+3. **Hakuparametrit**: Säädä `max_search`-parametreja hallitaksesi, kuinka kauas jäsennin etsii liittyvää tietoa
 
-## Example
+## Esimerkki
 
 ```python
 import pandas as pd
 from horse_parser import parse_lahdot
 
-# Parse the PDF
-data = parse_lahdot("my_race_program.pdf")
+# Jäsennä PDF
+data = parse_lahdot("oma_raviohjelma.pdf")
 
-# Display basic statistics
-print(f"Total horses: {data['Hevonen'].nunique()}")
-print(f"Total runs: {len(data)}")
+# Näytä perustilastot
+print(f"Hevosia yhteensä: {data['Hevonen'].nunique()}")
+print(f"Juoksuja yhteensä: {len(data)}")
 
-# Save to Excel
-data.to_excel("race_data.xlsx", index=False)
+# Tallenna Excel-tiedostoon
+data.to_excel("ravitiedot.xlsx", index=False)
 ```
 
-## Troubleshooting
+## Vianmääritys
 
-**Common Issues:**
+**Yleiset ongelmat:**
 
-1. **No data extracted**: Check that the PDF format matches the expected structure
-2. **Date parsing errors**: Verify that dates are in DD.MM format
-3. **Missing records
+1. **Ei tietoja poimittu**: Tarkista, että PDF-muoto vastaa odotettua rakennetta
+2. **Päivämäärien jäsentämisvirheet**: Varmista, että päivämäärät ovat PP.KK-muodossa
+3. **Puuttuvat ennätykset**: Varmista, että PDF sisältää odotetut aikammallit
+4. **Koodausongelmat**: Varmista, että PDF käyttää standardia tekstikoodausta
+
+**Vianmääritysvinkkejä:**
+
+- Lisää print-lauseita nähdäksesi poimitut rivit
+- Testaa regex-malleja esimerkkitekstillä
+- Tarkista PDF-tekstin poimimisen laatu
+
+## Lisenssi
+
+Tämä projekti on avoimen lähdekoodin. Voit vapaasti muokata ja jakaa tarpeidesi mukaan.
+
+## Osallistuminen
+
+Osallistuminen on tervetullutta! Ole hyvä ja:
+1. Haaroita repositorio
+2. Luo ominaisuushaara
+3. Tee muutoksesi
+4. Lähetä pull request
+
+## Tuki
+
+Ongelmissa tai kysymyksissä, tarkista koodin kommentit tai luo issue repositorioon.
