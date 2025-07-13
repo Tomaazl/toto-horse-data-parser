@@ -34,7 +34,7 @@ hevosdata = parse_lahdot("ohjelmatiedot.R_13.07.2025.pdf")
 hevosdata.to_excel("Hevosdata_Riihimaki.xlsx", index=False)
 ```
 
-### Komentorivi-käyttö
+### Esimerkki: Komentorivi-käyttö
 
 Suorita skripti suoraan:
 
