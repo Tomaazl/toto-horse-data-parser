@@ -122,7 +122,7 @@ def extract_all_runs(lines, start_idx, run_pattern):
             
             if time_matches:
                 # Take the last time match in the line (most likely the race time)
-                last_time_str = time_matches[-1]
+                last_time_str = time_matches[-1][:4]
                 try:
                     run_time = float(last_time_str.replace(',', '.'))
                     runs.append((run_date, run_time))
@@ -179,3 +179,10 @@ def find_date_for_time(lines, start_idx, time_str, date_pattern, max_search=15):
         except IndexError:
             break
     return None
+
+
+def find_matching_hevonen(result_hevonen, score_hevoset):
+	for hevonen in score_hevoset:
+		if hevonen in result_hevonen:
+			return hevonen
+	return None
