@@ -34,12 +34,12 @@ hevosdata = parse_lahdot("ohjelmatiedot.R_13.07.2025.pdf")
 hevosdata.to_excel("Hevosdata_Riihimaki.xlsx", index=False)
 ```
 
-### Komentorivi-käyttö
+### Esimerkki: Komentorivi-käyttö
 
 Suorita skripti suoraan:
 
 ```bash
-python horse_parser.py
+python main.py
 ```
 
 Tämä käsittelee oletustiedoston `ohjelmatiedot.R_13.07.2025.pdf` ja luo tiedoston `Hevosdata_Riihimaki.xlsx`.
