@@ -76,11 +76,12 @@ def parse_lahdot(pdf_path):
                     "Ennätys pvm (a)": auto_record_date,
                     "Ennätys pvm (t)": tasuri_record_date,
                     "Juoksu pvm": None,
-                    "Juoksu aika": None
+                    "Juoksu aika": None,
+                    "Sijoitus": None
                 })
             else:
                 # Add one row for each run, duplicating horse basic info
-                for run_date, run_time in runs:
+                for run_date, run_time, position in runs:
                     all_data.append({
                         "Lähtö": page_title,
                         "Hevonen": horse_name,
@@ -90,48 +91,78 @@ def parse_lahdot(pdf_path):
                         "Ennätys pvm (a)": auto_record_date,
                         "Ennätys pvm (t)": tasuri_record_date,
                         "Juoksu pvm": run_date,
-                        "Juoksu aika": run_time
+                        "Juoksu aika": run_time,
+                        "Sijoitus": position
                     })
             
             x += 1
     
     return pd.DataFrame(all_data)
 
+import re
+
 def extract_all_runs(lines, start_idx, run_pattern):
-    """Extract all runs (date and time) for a horse"""
+    """Extract all runs (date, time, position) for a horse."""
     runs = []
-    
-    # Look through the lines following the horse name until we hit the next horse
+
     for i in range(start_idx, min(start_idx + 20, len(lines))):
         line = lines[i]
-        
-        # If we hit another "Yht:" line, we've reached the next horse
+
         if "Yht:" in line:
             break
-        
-        # Check if this line contains run information
+
         date_match = run_pattern.search(line)
-        if date_match:
-            # Extract date
-            run_date_str = date_match.group(1)
-            run_date = parse_date(run_date_str)
+        if not date_match:
+            continue
+
+        run_date = parse_date(date_match.group(1))
+
+        # locate all time patterns (e.g. "19,36" or "19,3")
+        time_iters = list(re.finditer(r'\d{1,2},\d(?:[a-zA-Z\W]{1,2})?\d{1,2}', line))
+        run_time = None
+        position = None
+
+        if time_iters:
+            last_tm = time_iters[-1]
+            full_time = last_tm.group()
+            integer, decimals = full_time.split(",")
             
-            # Extract time - look for time patterns after the date
-            # Find all time patterns in the line (format: digits,digits)
-            time_matches = re.findall(r'\d{1,2},\d+', line)
-            
-            if time_matches:
-                # Take the last time match in the line (most likely the race time)
-                last_time_str = time_matches[-1][:4]
+
+            # if two decimals, second is position
+            if len(decimals) > 1:
+                run_time_str = f"{integer},{decimals[0]}"
                 try:
-                    run_time = float(last_time_str.replace(',', '.'))
-                    runs.append((run_date, run_time))
-                except ValueError:
-                    runs.append((run_date, None))
+                    position = int(decimals[1])
+                except:
+                    match = re.match(r'(\d+)[^\d]+(\d+)', decimals)
+                    if match:
+                        left, right = match.groups()
+                        position = int(right)
+                    else:
+                        position = None
             else:
-                runs.append((run_date, None))
-    
+                run_time_str = full_time
+
+                # only peek at the next 3 chars for a standalone digit
+                window = line[last_tm.end() : last_tm.end() + 5]
+                for m in re.finditer(r'\d+', window):
+                    abs_idx = last_tm.end() + m.start()
+                    # skip if glued to letter
+                    if abs_idx > 0 and line[abs_idx - 1].isalpha():
+                        continue
+                    position = int(m.group())
+                    break
+
+            try:
+                run_time = float(run_time_str.replace(",", "."))
+            except ValueError:
+                run_time = None
+
+        runs.append((run_date, run_time, position))
+
     return runs
+
+
 
 def parse_age(age_text):
     """Convert age text to number"""
